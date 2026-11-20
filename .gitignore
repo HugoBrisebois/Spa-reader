@@ -1,3 +1,7 @@
 src/My Clippings.txt
 .gitignore
 src/books.db
+.venv
+__pycache__
+books.db-shm
+books.db-wal
