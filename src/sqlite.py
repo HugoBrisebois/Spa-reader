@@ -171,3 +171,37 @@ class db_helper:
         """, (title, author, norm_key, progress))
 
         return cursor.fetchone()["id"]
+
+    @staticmethod
+    def insert_clipping(cursor: sqlite3.Cursor, book_id: int, item: dict, source: str = "kindle") -> bool:
+        # Inserts a single parsed clipping dictionary into the clipping table
+        # returns true if a new row was inserted, or false if it was duplicated/skipped
+
+        clip_type = item["type"].lower()
+        if clip_type not in ("highlight", "note", "bookmark"):
+            return False
+
+        #build a deterministic SHA-256 hash so re-import never create duplicate
+        raw_sig = f"{book_id}|{clip_type}|{item['content']}|{item['date']}"
+        content_hash = hashlib.sha256(raw_sig.encode("utf-8")).hexdigest()
+
+        source_meta = json.dumps({
+            "page": item.get("page"),
+            "location": item.get("location"),
+        })
+
+        cursor.execute("""
+            INSET OR IGNORE INTO clipping (
+            book_id, source, clip_type, content,
+            content_hash, source_meta, highlighted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+        """, (
+            book_id, source, 
+            clip_type,
+            item["content"],
+            content_hash,
+            source_meta,
+            item["date"]
+        ))
+
+        return cursor.rowcount == 1
