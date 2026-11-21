@@ -1,4 +1,6 @@
 import sqlite3
+import datetime
+
 
 class db_helper:
 
@@ -118,3 +120,26 @@ class db_helper:
 
         finally:
             conn.close()
+
+    @staticmethod
+    def fetch_bookTitle(db: str):
+        print("DEBUG: fetching the book title")
+
+        conn = db_helper.get_connection(db)
+
+        try:
+            with conn:
+                cursor = conn.cursor()
+                cursor.executescript("""
+                    SELECT updated_at FROM book ORDER BY updated_at DESC LIMIT 1;
+                """)
+
+                # fetchone returns a single book item
+                row = cursor.fetchone()
+                return row
+        finally:
+            conn.close()
+        
+    @staticmethod
+    def insert_book():
+        pass

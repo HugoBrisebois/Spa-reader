@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from datetime import datetime
+from sqlite import db_helper
 
 
 
@@ -35,6 +36,13 @@ class GUI:
         # define the time/clock standby
         timeLabel = ttk.Label(mainFrame, text=time)
         timeLabel.grid(column=2, row=2)
+
+
+        # fetch book title of the most recent book from the database and then display it
+        bookTitle = db_helper.fetch_bookTitle("books.db")
+
+        bookTitleLabel = ttk.Label(mainFrame, text=bookTitle)
+        bookTitleLabel.grid(column=1, row=2)
         
         GUI.update_time(timeLabel)
 
