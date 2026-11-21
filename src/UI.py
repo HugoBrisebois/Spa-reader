@@ -44,3 +44,7 @@ class GUI:
 
         # run main loop
         root.mainloop()
+
+    @staticmethod
+    def open_fileDialog():
+        pass

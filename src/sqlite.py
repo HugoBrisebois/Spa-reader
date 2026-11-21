@@ -144,10 +144,11 @@ class db_helper:
             conn.close()
         
     @staticmethod
-    def upsert_book(cursor: sqlite3.Cursor, raw_book_title: str,  progress: float = 0.0) -> int:
-        # splits 'Title (author)', inserts or updates thae book row,
-        # and returns its integer primary key (book_id)
-
+    def upsert_book(cursor: sqlite3.Cursor, raw_book_title: str, progress: float = 0.0) -> int:
+        """
+        Splits 'Title (Author)', inserts or updates the book row,
+        and returns its integer primary key (book_id).
+        """
         raw_book = raw_book_title.strip()
         author_match = re.search(r"\(([^()]+)\)$", raw_book)
 
@@ -160,28 +161,28 @@ class db_helper:
 
         norm_key = f"{title.lower()}|{author.lower()}"
 
-
         cursor.execute("""
             INSERT INTO book (title, author, normalized_key, progress_percent)
             VALUES (?, ?, ?, ?)
-            ON CONFLICT(normailzed_key) DO UDATE SET
-                progress_percent = MAX(book.progress_percent, exclude.progress_percent),
-                updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
-            RETURNING id
+            ON CONFLICT(normalized_key) DO UPDATE SET
+                progress_percent = MAX(book.progress_percent, excluded.progress_percent),
+                updated_at       = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+            RETURNING id;
         """, (title, author, norm_key, progress))
 
         return cursor.fetchone()["id"]
 
     @staticmethod
     def insert_clipping(cursor: sqlite3.Cursor, book_id: int, item: dict, source: str = "kindle") -> bool:
-        # Inserts a single parsed clipping dictionary into the clipping table
-        # returns true if a new row was inserted, or false if it was duplicated/skipped
-
+        """
+        Inserts a single parsed clipping dictionary into the clipping table.
+        Returns True if a new row was inserted, or False if it was a duplicate/skipped.
+        """
         clip_type = item["type"].lower()
         if clip_type not in ("highlight", "note", "bookmark"):
             return False
 
-        #build a deterministic SHA-256 hash so re-import never create duplicate
+        # Build a deterministic SHA-256 hash so re-imports never create duplicates
         raw_sig = f"{book_id}|{clip_type}|{item['content']}|{item['date']}"
         content_hash = hashlib.sha256(raw_sig.encode("utf-8")).hexdigest()
 
@@ -191,17 +192,67 @@ class db_helper:
         })
 
         cursor.execute("""
-            INSET OR IGNORE INTO clipping (
-            book_id, source, clip_type, content,
-            content_hash, source_meta, highlighted_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            INSERT OR IGNORE INTO clipping (
+                book_id, source, clip_type, content,
+                content_hash, source_meta, highlighted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?);
         """, (
-            book_id, source, 
+            book_id,
+            source,
             clip_type,
             item["content"],
             content_hash,
             source_meta,
-            item["date"]
+            item["date"],
         ))
 
         return cursor.rowcount == 1
+
+    @staticmethod
+    def insert_reading_event(
+        cursor: sqlite3.Cursor,
+        device: str,
+        event_type: str,
+        book_id: int | None = None,
+        progress: float | None = None,
+    ) -> None:
+        """Logs a sync, heartbeat, or sleep_alert_fired event."""
+        cursor.execute("""
+            INSERT INTO reading_event (book_id, device, event_type, progress_percent)
+            VALUES (?, ?, ?, ?);
+        """, (book_id, device, event_type, progress))
+
+    @staticmethod
+    def import_kindle_batch(db: str, clippings: list[dict]) -> int:
+        """
+        Master transaction function: takes the full list from kindle.parse_kindle_clippings(),
+        upserts books, inserts all new highlights, logs the sync, and updates app_state.
+        """
+        conn = db_helper.get_connection(db)
+        new_count = 0
+        last_book_id = None
+
+        try:
+            with conn:
+                cursor = conn.cursor()
+
+                for item in clippings:
+                    book_id = db_helper.upsert_book(cursor, item["book"])
+                    last_book_id = book_id
+
+                    if db_helper.insert_clipping(cursor, book_id, item, source="kindle"):
+                        new_count += 1
+
+                # Log the sync event and update last_sync_at
+                db_helper.insert_reading_event(cursor, device="kindle", event_type="sync", book_id=last_book_id)
+
+                cursor.execute("""
+                    UPDATE app_state
+                    SET value      = strftime('%Y-%m-%dT%H:%M:%SZ', 'now'),
+                        updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+                    WHERE key = 'last_sync_at';
+                """)
+
+            return new_count
+        finally:
+            conn.close()
