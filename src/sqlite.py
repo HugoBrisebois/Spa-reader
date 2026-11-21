@@ -1,5 +1,8 @@
 import sqlite3
 import datetime
+import re 
+import json
+import hashlib
 
 
 class db_helper:
@@ -131,15 +134,40 @@ class db_helper:
             with conn:
                 cursor = conn.cursor()
                 cursor.executescript("""
-                    SELECT updated_at FROM book ORDER BY updated_at DESC LIMIT 1;
+                    SELECT title FROM book ORDER BY updated_at DESC LIMIT 1;
                 """)
 
                 # fetchone returns a single book item
                 row = cursor.fetchone()
-                return row
+                return row if row else "no books yet"
         finally:
             conn.close()
         
     @staticmethod
-    def insert_book():
-        pass
+    def upsert_book(cursor: sqlite3.Cursor, raw_book_title: str,  progress: float = 0.0) -> int:
+        # splits 'Title (author)', inserts or updates thae book row,
+        # and returns its integer primary key (book_id)
+
+        raw_book = raw_book_title.strip()
+        author_match = re.search(r"\(([^()]+)\)$", raw_book)
+
+        if author_match:
+            author = author_match.group(1).strip()
+            title = raw_book[:author_match.start()].strip()
+        else:
+            title = raw_book
+            author = "Unknown"
+
+        norm_key = f"{title.lower()}|{author.lower()}"
+
+
+        cursor.execute("""
+            INSERT INTO book (title, author, normalized_key, progress_percent)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(normailzed_key) DO UDATE SET
+                progress_percent = MAX(book.progress_percent, exclude.progress_percent),
+                updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+            RETURNING id
+        """, (title, author, norm_key, progress))
+
+        return cursor.fetchone()["id"]
