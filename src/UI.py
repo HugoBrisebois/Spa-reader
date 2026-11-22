@@ -23,10 +23,7 @@ class GUI:
         mainFrame = ttk.Frame(root, padding= 30)
         mainFrame.grid(column= 0, row= 0, sticky=(N, W, E, S))
 
-
-        now = datetime.now()
-
-        time = now.strftime("%H:%M")
+        time = datetime.now(strftime("%H:%M"))
         print(time)
 
         # define the time/clock standby
@@ -40,6 +37,9 @@ class GUI:
         bookTitleLabel = ttk.Label(mainFrame, text=bookTitle)
         bookTitleLabel.grid(column=1, row=2)
         
+        file_btn = ttk.Button(mainFrame, text= "open My Clippings.txt")
+        file_btn.grid(column=3, row=3)
+
         GUI.update_time(timeLabel)
 
         # run main loop
@@ -47,4 +47,9 @@ class GUI:
 
     @staticmethod
     def open_fileDialog():
-        pass
+        file_path = filedialog.askopenfilename(title="open My Clippings.txt")
+
+        if not file_path:
+            return
+
+        
