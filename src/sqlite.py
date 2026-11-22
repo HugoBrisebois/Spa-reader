@@ -133,13 +133,13 @@ class db_helper:
         try:
             with conn:
                 cursor = conn.cursor()
-                cursor.executescript("""
+                cursor.execute("""
                     SELECT title FROM book ORDER BY updated_at DESC LIMIT 1;
                 """)
 
                 # fetchone returns a single book item
                 row = cursor.fetchone()
-                return row if row else "no books yet"
+                return row["title"] if row else "no books yet"
         finally:
             conn.close()
         

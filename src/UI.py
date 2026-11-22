@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk, filedialog
 from datetime import datetime
 from sqlite import db_helper
-import kindle
+from kindle import kindle
 
 
 class GUI:
@@ -37,20 +37,12 @@ class GUI:
         mainFrame = ttk.Frame(root, padding=30)
         mainFrame.grid(column=0, row=0, sticky=(N, W, E, S))
 
-        time = datetime.now(strftime("%H:%M"))
-        print(time)
-
-        # define the time/clock standby
-        timeLabel = ttk.Label(mainFrame, text=time)
-        timeLabel.grid(column=2, row=2)
-
-
-        # fetch book title of the most recent book from the database and then display it
+        # Fetch book title of the most recent book from the database and display it
         bookTitle = db_helper.fetch_bookTitle("books.db")
         bookTitleLabel = ttk.Label(mainFrame, text=bookTitle)
         bookTitleLabel.grid(column=1, row=2)
 
-        # Define the clock label
+        # Define the clock label once
         timeLabel = ttk.Label(mainFrame, text=datetime.now().strftime("%H:%M"))
         timeLabel.grid(column=2, row=2)
 
@@ -64,5 +56,5 @@ class GUI:
 
         GUI.update_time(timeLabel)
 
-        # run the main app loop
+        # Run the main app loop
         root.mainloop()
