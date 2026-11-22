@@ -1,5 +1,7 @@
 import requests
 import re
+from PIL import Image, ImageTk
+import io
 
 class bookData:
     @staticmethod
@@ -34,12 +36,11 @@ class bookData:
 
         try:
             book = bookData.clean_book_title(book_title)
-            r = requests.get(f"{base_url_title}search.json?q='{book}'", headers=headers, timeout=5000)
+            r = requests.get(f"{base_url_title}search.json?q='{book}'", headers=headers, timeout=10)
 
             if r.status_code == 200:
                 print("success")
                 data = r.json()
-                print(data)
 
                 docs = data.get("docs", [])
                 if docs:
@@ -62,3 +63,25 @@ class bookData:
         except requests.RequestException as e:
             print(f"Network or connection error: {e}")
             return None
+
+    @staticmethod
+    def fetch_cover_image(url: str, width: int = 120, height: int = 180):
+        # downloads an image from a URL and returns a Tkinter PhotoImage
+        try: 
+            headers = {"User-Agent": "SpaReader ()"}
+            response = requests.get(url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                # read bytes into a stream and open with Pillow
+                image_stream = io.BytesIO(response.content)
+                pil_image = Image.open(image_stream)
+
+                # resize the cover to fit neatly inside the UI
+                pil_image = pil_image.resize((width, height), Image.Resampling.LANCZOS)
+
+                # convert to a tkinter compatible image
+                return ImageTk.PhotoImage(pil_image)
+        except Exception as e:
+            print(f"Failed to load cover image: {e}")
+
+        return None

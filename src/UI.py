@@ -50,9 +50,7 @@ class GUI:
 
         # Fetch book title of the most recent book from the database and display it
         book = db_helper.fetch_bookTitle("books.db")
-        print(book)
         bookTitle = bookData.clean_book_title(book)
-        print(bookTitle)
         bookTitleLabel = ttk.Label(mainFrame, text=bookTitle)
         bookTitleLabel.grid(column=1, row=2)
 
