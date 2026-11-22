@@ -17,10 +17,6 @@ if __name__ == "__main__":
     # start the background thread
     bg_thread.start()
 
-    clippings = kindle.parse_kindle_clippings(file_path)
-    added = db_helper.import_kindle_batch("books.db", clippings)
-    print(f"Imported {added} new highlights")
-
 
     # call and run the gui
     GUI.UI()
