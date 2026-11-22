@@ -2,12 +2,15 @@ import threading
 import kindle
 from sqlite import db_helper
 from UI import GUI
+from books import bookData
 
 def run_background_service():
     # initialize and or make sure the tables are initialized properly
     print("DEBUG: running services in background")
     db_helper.create_tables("books.db")
     db_helper.create_indexes("books.db")
+    bookData.getBookOLID("Dune")
+    
 
 if __name__ == "__main__":
 
