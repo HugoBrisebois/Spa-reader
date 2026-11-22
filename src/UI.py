@@ -37,7 +37,15 @@ class GUI:
         mainFrame = ttk.Frame(root, padding=30)
         mainFrame.grid(column=0, row=0, sticky=(N, W, E, S))
 
-        # Fetch initial book title
+        time = datetime.now(strftime("%H:%M"))
+        print(time)
+
+        # define the time/clock standby
+        timeLabel = ttk.Label(mainFrame, text=time)
+        timeLabel.grid(column=2, row=2)
+
+
+        # fetch book title of the most recent book from the database and then display it
         bookTitle = db_helper.fetch_bookTitle("books.db")
         bookTitleLabel = ttk.Label(mainFrame, text=bookTitle)
         bookTitleLabel.grid(column=1, row=2)
