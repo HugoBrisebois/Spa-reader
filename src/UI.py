@@ -10,8 +10,8 @@ class GUI:
     # Update the book cover in the aplication
     @staticmethod
     def update_bookCover(bookName):
-        bookData.getBookOLID(bookName)
-        
+        clean_bookTitle = bookData.clean_book_title(bookName)
+        bookData.getBookOLID(clean_bookTitle)
     
     # open the filadialog module
     @staticmethod
@@ -49,7 +49,10 @@ class GUI:
         mainFrame.grid(column=0, row=0, sticky=(N, W, E, S))
 
         # Fetch book title of the most recent book from the database and display it
-        bookTitle = db_helper.fetch_bookTitle("books.db")
+        book = db_helper.fetch_bookTitle("books.db")
+        print(book)
+        bookTitle = bookData.clean_book_title(book)
+        print(bookTitle)
         bookTitleLabel = ttk.Label(mainFrame, text=bookTitle)
         bookTitleLabel.grid(column=1, row=2)
 
