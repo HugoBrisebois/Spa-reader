@@ -14,7 +14,7 @@ class bookData:
         }
 
         try:
-            r = requests.get(f"{base_url_title}search.json?title={book_title}", headers=headers, timeout=5000)
+            r = requests.get(f"{base_url_title}search.json?q={book_title}", headers=headers, timeout=5000)
 
             if r.status_code == 200:
                 print("success")

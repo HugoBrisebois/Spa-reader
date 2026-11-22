@@ -9,7 +9,8 @@ def run_background_service():
     print("DEBUG: running services in background")
     db_helper.create_tables("books.db")
     db_helper.create_indexes("books.db")
-    bookData.getBookOLID("Dune")
+    book_title = db_helper.fetch_bookTitle("books.db")
+    bookData.getBookOLID(book_title)
     
 
 if __name__ == "__main__":

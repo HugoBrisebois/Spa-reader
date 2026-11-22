@@ -119,6 +119,9 @@ class db_helper:
 
                     -- speed up the bedtime curfew engine when checking recent heartbeats
                     CREATE INDEX IF NOT EXISTS idx_event_recorded_at ON reading_event(recorded_at DESC);
+
+                    -- Speeds up finding the most recently updated book
+                    CREATE INDEX IF NOT EXISTS idx_book_updated_at ON book(updated_at DESC)
                 """)
 
         finally:
@@ -147,7 +150,7 @@ class db_helper:
     def upsert_book(cursor: sqlite3.Cursor, raw_book_title: str, progress: float = 0.0) -> int:
         """
         Splits 'Title (Author)', inserts or updates the book row,
-        and returns its integer primary key (book_id).
+        and forces updated_at to now so it registers as the most recent book.
         """
         raw_book = raw_book_title.strip()
         author_match = re.search(r"\(([^()]+)\)$", raw_book)
@@ -254,5 +257,20 @@ class db_helper:
                 """)
 
             return new_count
+        finally:
+            conn.close()
+
+    @staticmethod
+    def touch_book(db: str, book_id: int):
+        # manually updates a book's timestamp to bring it to the top
+        conn = db_helper.get_connection(db)
+        try:
+            with conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE book
+                    SET updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+                    WHERE id = ?;
+                """, (book_id,))
         finally:
             conn.close()

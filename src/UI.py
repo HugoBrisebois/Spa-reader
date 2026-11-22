@@ -3,9 +3,17 @@ from tkinter import ttk, filedialog
 from datetime import datetime
 from sqlite import db_helper
 from kindle import kindle
+from books import bookData
 
 
 class GUI:
+    # Update the book cover in the aplication
+    @staticmethod
+    def update_bookCover(bookName):
+        bookData.getBookOLID(bookName)
+        
+    
+    # open the filadialog module
     @staticmethod
     def open_fileDialog(bookTitleLabel):
         file_path = filedialog.askopenfilename(
@@ -23,12 +31,15 @@ class GUI:
         new_title = db_helper.fetch_bookTitle("books.db")
         bookTitleLabel.config(text=new_title)
 
+    # function to update the time in the application
     @staticmethod
     def update_time(timeLabel):
         now = datetime.now()
         timeLabel.config(text=now.strftime("%H:%M"))
         timeLabel.after(1000, lambda: GUI.update_time(timeLabel))
 
+
+    # main function to control the GUI
     @staticmethod
     def UI():
         root = Tk()
