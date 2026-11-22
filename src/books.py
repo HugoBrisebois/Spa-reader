@@ -45,17 +45,20 @@ class bookData:
                 if docs:
                     firstbook = docs[0]
 
-                    work_key = firstbook.get("key", "")
-                    if work_key:
-                        olid = work_key.split("/")[-1]
-                        print(olid)
-                        return olid
-                else:
-                    print("No books found in query")
-                    return None
-            
-            else:
-                print(f"Error: {r.status_code}")
+                    # open library provides 'cover_i' (Cover ID) if available
+                    cover_id = firstbook.get("cover_i")
+                    if cover_id:
+                        # return the direct image URL (sizes can be 'S' 'M' 'L')
+                        return f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
+
+                    # Fallback: check for ISBN if cover_i is missing
+                    isbns = firstbook.get("isbn", [])
+                    if isbns:
+                        return f"https://covers.openlibrary.org/b/isbn/{isbns[0]}-L.jpg"
+                
+            print("No books found in query")
+            return None
 
         except requests.RequestException as e:
             print(f"Network or connection error: {e}")
+            return None
