@@ -3,10 +3,16 @@ import datetime
 import re 
 import json
 import hashlib
+import os
 
 
 class db_helper:
 
+    @staticmethod
+    def make_databaseFile(db: str):
+        pass
+
+    
     @staticmethod
     def get_connection(db: str) -> sqlite3.Connection:
         conn = sqlite3.connect(db)
