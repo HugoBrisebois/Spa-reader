@@ -2,14 +2,14 @@
 
 the custom modern ereader note and reading status tracker for kindles and kobos
 
-# Current features
+## Current features
 
 - Kindle My Clippings.txt file parsing
 - book cover loading and displaying
 - database management and logging
 - maybe more not sure
 
-# future features
+## future features
 
 - auto Kindle My Clippings.txt for parsing
 - auto scaling of the app
@@ -18,7 +18,7 @@ the custom modern ereader note and reading status tracker for kindles and kobos
 - make it so that it can be hosted in docker or run directly on device
 - make the program make the database file
 
-# how to run
+## how to run
 
 go to https://github.com/HugoBrisebois/Spa-reader/releases/tag/v0.1.0
 and download the binary, built on x86_64 most likely built for it too.
