@@ -2,6 +2,10 @@
 
 the custom modern ereader note and reading status tracker for kindles and kobos
 
+## why build this
+
+i wanted to build this project so that i could track what i was reading and make the transition from tracking kindle metadata to tracking kobo metadata.
+
 ## Current features
 
 - Kindle My Clippings.txt file parsing
