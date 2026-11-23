@@ -5,3 +5,4 @@ src/books.db
 __pycache__
 books.db-shm
 books.db-wal
+dist/

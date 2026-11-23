@@ -26,46 +26,44 @@ class bookData:
         return ' '.join(title.split()).strip()
 
     @staticmethod
-    def getBookOLID(book_title: str):
-        base_url_title = "https://openlibrary.org/"
-
-        # making sure the openlibrary api request goes through properly
+    def getBookOLID(book_title: str) -> str | None:
+        base_url = "https://openlibrary.org"
         headers = {
-            "User-Agent": "SpaReader ()"
+            "User-Agent": "SpaReader (your-email@example.com)"
         }
-
+        
         try:
-            book = bookData.clean_book_title(book_title)
-            r = requests.get(f"{base_url_title}search.json?q='{book}'", headers=headers, timeout=10)
-
+            # Query Open Library with our cleaned title
+            r = requests.get(f"{base_url}/search.json?q={book_title}", headers=headers, timeout=10)
+            
             if r.status_code == 200:
-                print("success")
                 data = r.json()
-
                 docs = data.get("docs", [])
+                
                 if docs:
-                    firstbook = docs[0]
-
-                    # open library provides 'cover_i' (Cover ID) if available
-                    cover_id = firstbook.get("cover_i")
+                    first_book = docs[0]
+                    
+                    # Open Library provides a 'cover_i' (Cover ID) if available
+                    cover_id = first_book.get("cover_i")
+                    
                     if cover_id:
-                        # return the direct image URL (sizes can be 'S' 'M' 'L')
+                        # Return the direct image URL (sizes can be 'S', 'M', 'L')
                         return f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
-
+                    
                     # Fallback: check for ISBN if cover_i is missing
-                    isbns = firstbook.get("isbn", [])
+                    isbns = first_book.get("isbn", [])
                     if isbns:
                         return f"https://covers.openlibrary.org/b/isbn/{isbns[0]}-L.jpg"
-                
-            print("No books found in query")
+                        
+            print("No cover found for this title.")
             return None
-
-        except requests.RequestException as e:
-            print(f"Network or connection error: {e}")
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Network error fetching cover: {e}")
             return None
 
     @staticmethod
-    def fetch_cover_image(url: str, width: int = 120, height: int = 180):
+    def fetch_cover_image(url: str,width: int = 120, height: int = 180):
         # downloads an image from a URL and returns a Tkinter PhotoImage
         try: 
             headers = {"User-Agent": "SpaReader ()"}
