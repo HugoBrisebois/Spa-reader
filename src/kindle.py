@@ -45,3 +45,9 @@ class kindle:
                 print(f"Skipped unreconized format: {meta_line}")
 
         return clippings
+
+    # function to calculate the amount of time spent between the  note made that says "start" and the note that says "end" 
+    # to calculate the sample time spent reading
+    @staticmethod
+    def get_time_read():
+        pass
