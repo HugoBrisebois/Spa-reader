@@ -15,12 +15,12 @@ i wanted to build this project so that i could track what i was reading and make
 
 ## future features
 
-- [] auto handle Kindle My Clippings.txt for parsing
-- [] auto scaling of the app
-- [] kobo database injestion
-- [] add fullscreen
-- [] make it so that it can be hosted in docker or run directly on device
-- [] make the program make the database file
+- [ ] auto handle Kindle My Clippings.txt for parsing
+- [ ] auto scaling of the app
+- [ ] kobo database injestion
+- [ ] add fullscreen
+- [ ] make it so that it can be hosted in docker or run directly on device
+- [ ] make the program make the database file
 
 ## how to run
 
