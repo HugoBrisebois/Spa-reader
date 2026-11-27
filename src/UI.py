@@ -4,7 +4,6 @@ from tkinter import ttk, filedialog
 import tkinter.font as tkfont
 from books import bookData
 from kindle import kindle
-from kobo import kobo
 from sqlite import db_helper
 
 
