@@ -6,3 +6,5 @@ __pycache__
 books.db-shm
 books.db-wal
 dist/
+data/
+dropzone/
