@@ -1,26 +1,46 @@
+import os
 import threading
-import kindle
+import time
+from pathlib import Path
+from kindle import kindle
 from sqlite import db_helper
-from UI import GUI
-from books import bookData
 
-def run_background_service():
-    # initialize and or make sure the tables are initialized properly
-    print("DEBUG: running services in background")
-    db_helper.create_tables("books.db")
-    db_helper.create_indexes("books.db")
-    book_title = db_helper.fetch_bookTitle("books.db")
-    bookData.getBookOLID(book_title)
-    db_helper.make_databaseFile("books.db")
+DB_PATH = os.getenv("SPA_DB_PATH", "data/books.db")
+MODE = os.getenv("SPA_MODE", "gui") # gui or headless
+
+def run_background_service(db_path: str):
+    user = os.getenv("USER", "pi")
+    kindle_paths = [
+        f"/media/{user}/Kindle/documents/My Clippings.txt",
+        f"/run/media/{user}/Kindle/ducoments/My Clippings.txt",
+        "dropzone/My Cippings",
+    ]
+
+    last_mtimes: dict[str, float] = {}
+
+    while True:
+        for raw_path in kindle_paths:
+            p = Path(raw_path)
+            if p.is_file() and last_mtimes.get(str(p)) != p.stat().st_mtime:
+                clippings = kindle.parse_kindle_clippings(str(p))
+                added = db_helper.import_kindle_batch(db_path, clippings)
+                print(f"auto-imported {added} kindle highlights from {p}")
+                last_mtimes[str(p)] = p.stat().st_mtime
+
+        time.sleep(5)
 
 if __name__ == "__main__":
+    resolved_db = db_helper.make_databaseFile(DB_PATH)
+    Path("dropzone").mkdir(exist_ok=True)
 
-    # create a background thread
-    bg_thread = threading.Thread(target=run_background_service, daemon=True)
+    if MODE == "headless":
+        print(f"running spa-reader in headless mode using {resolved_db}")
+        run_background_service(resolved_db)
+    else:
+        bg_thread = threading.Thread(
+            target=run_background_service, args=(resolved_db), daemon=True
+        )
+        bg_thread.start()
 
-    # start the background thread
-    bg_thread.start()
-
-
-    # call and run the gui
-    GUI.UI()
+        from UI import GUI
+        GUI.UI(db_path=resolved_db, fullscreen=os.getenv("SPA_FULSCREEN", "0") == "1")

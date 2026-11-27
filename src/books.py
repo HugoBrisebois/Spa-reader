@@ -1,7 +1,7 @@
-import requests
-import re
-from PIL import Image, ImageTk
 import io
+import re
+import requests
+from PIL import Image, ImageTk
 
 class bookData:
     @staticmethod
