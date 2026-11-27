@@ -11,7 +11,7 @@ def run_background_service():
     db_helper.create_indexes("books.db")
     book_title = db_helper.fetch_bookTitle("books.db")
     bookData.getBookOLID(book_title)
-    
+    db_helper.make_databaseFile("books.db")
 
 if __name__ == "__main__":
 

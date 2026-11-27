@@ -1,5 +1,7 @@
 import re
+import time
 from pathlib import Path
+from sqlite import db_helper
 
 
 class kindle:
@@ -11,6 +13,25 @@ class kindle:
         r"(?:Location (?P<location>[\d-]+))?"
         r" \| Added on (?P<date>.+)$"
     )
+
+    @staticmethod
+    def watch_kindle_paths(db: str, watch_paths: list[str], interval: int = 5):
+        """Polls common Kindle USB mount paths and local drop folders for changes."""
+        last_mtimes: dict[str, float] = {}
+
+        while True:
+            for raw_path in watch_paths:
+                p = Path(raw_path)
+                if p.is_file():
+                    mtime = p.stat().st_mtime
+                    if last_mtimes.get(str(p)) != mtime:
+                        print(f"DEBUG: Detected updated Kindle file at {p}")
+                        clippings = kindle.parse_kindle_clippings(str(p))
+                        added = db_helper.import_kindle_batch(db, clippings)
+                        print(f"DEBUG: Auto-imported {added} new highlights")
+                        last_mtimes[str(p)] = mtime
+            time.sleep(interval)
+
 
     @staticmethod
     def parse_kindle_clippings(file_path):

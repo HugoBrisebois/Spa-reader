@@ -4,13 +4,23 @@ import re
 import json
 import hashlib
 import os
+from pathlib import Path
 
 
 class db_helper:
 
     @staticmethod
-    def make_databaseFile(db: str):
-        pass
+    def make_databaseFile(db: str) -> str:
+        db_path = Path(db).expanduser().resolve()
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # open a connection creates the file on disk if not already existing
+        conn = db_helper.get_connection(str(db_path))
+        conn.close()
+
+        db_helper.create_tables(str(db_path))
+        db_helper.create_indexes(str(db_path))
+        return str(db_path)
 
     
     @staticmethod
