@@ -109,30 +109,39 @@ class db_helper:
             conn.close()
 
     @staticmethod
-    def fetch_bookTitle(db: str) -> str:
+    def fetch_active_book_and_quote(db: str) -> tuple[str, str]:
+        # finds the most recent quote and then returns the book and the quote
         conn = db_helper.get_connection(db)
-        try:
-            cursor = conn.cursor()
-            cursor.execute("SELECT title FROM book ORDER BY updated_at DESC LIMIT 1;")
-            row = cursor.fetchone()
-            return row["title"] if row else "No books yet"
-        finally:
-            conn.close()
 
-    @staticmethod
-    def fetch_latest_quote(db: str) -> str:
-        conn = db_helper.get_connection(db)
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT content FROM clipping
-                WHERE clip_type = 'highlight' AND content != ''
-                ORDER BY id DESC LIMIT 1;
-            """)
+                SELECT
+                b.title AS book_title,
+                c.content AS quote_content
+                FROM clipping c
+                JOIN book b ON c.book_id = b.id
+                WHERE c.clip_type = 'highlight' AND c.content != ''
+                ORDER BY c.id DESC
+                LIMIT 1;                
+            """)        
             row = cursor.fetchone()
-            return f'"{row["content"]}"' if row else "Import clippings or sync Kobo to begin"
+            if row:
+                return row["book_title"], f'"{row["quote_content"]}"'
+
+            # fallback if a book exists with no highlights yet
+            cursor.execute("SELECT title FROM book ORDER BY updated_at DESC, id DESC LIMIT 1;")
+            book_row = cursor.fetchone()
+            if book_row:
+                return book_row["title"], 'no highlights yet for this book'
+
+            return "no book yet", "import clippings to begin"
+
         finally:
             conn.close()
+
+            
+
 
     @staticmethod
     def upsert_book(cursor: sqlite3.Cursor, raw_book_title: str, progress: float = 0.0) -> int:

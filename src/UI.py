@@ -35,9 +35,8 @@ class GUI:
 
     @staticmethod
     def refresh_display(db_path: str, mainFrame, bookTitleLabel, quoteLabel):
-        raw_title = db_helper.fetch_bookTitle(db_path)
+        raw_title, quote = db_helper.fetch_active_book_and_quote(db_path)
         clean_title = bookData.clean_book_title(raw_title)
-        quote = db_helper.fetch_latest_quote(db_path)
 
         bookTitleLabel.config(text=clean_title)
         quoteLabel.config(text=quote)
@@ -45,6 +44,7 @@ class GUI:
         if clean_title != GUI._last_rendered_title:
             GUI._last_rendered_title = clean_title
             GUI.load_cover(mainFrame, clean_title)
+
 
     @staticmethod
     def open_fileDialog(db_path: str, mainFrame, bookTitleLabel, quoteLabel):
@@ -54,6 +54,10 @@ class GUI:
         )
         if not file_path:
             return
+
+        clippings = kindle.parse_kindle_clippings(file_path)
+        db_helper.import_kindle_batch(db_path, clippings)
+
         GUI.refresh_display(db_path, mainFrame, bookTitleLabel, quoteLabel)
 
     @staticmethod

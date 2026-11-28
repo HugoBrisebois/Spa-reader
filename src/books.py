@@ -65,11 +65,13 @@ class bookData:
     @staticmethod
     def fetch_cover_image(url: str,width: int = 120, height: int = 180):
         # downloads an image from a URL and returns a Tkinter PhotoImage
+        print("getting cover image to display")
         try: 
             headers = {"User-Agent": "SpaReader ()"}
             response = requests.get(url, headers=headers, timeout=10)
             
             if response.status_code == 200:
+                print("DEBUG: fetching successful")
                 # read bytes into a stream and open with Pillow
                 image_stream = io.BytesIO(response.content)
                 pil_image = Image.open(image_stream)
